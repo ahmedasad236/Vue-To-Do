@@ -5,14 +5,22 @@
       <ul class="todos">
         <li
           class="todo"
-          v-for="todo in todos"
-          :key="todo"
+          v-bind:class="getTodo(todo).completed && 'completed-task'"
+          v-for="todo in filteredTodos"
+          :key="todo.todo"
         >
           <input
             type="checkbox"
             class="checkbox"
+            v-bind:id="todo.todo"
+            v-bind:value="getTodo(todo).completed"
+            @click="toggleCompleted(todo)"
           />
-          <sapn class="todo-text">{{ todo }}</sapn>
+          <label
+            v-bind:for="todo.todo"
+            class="todo-text"
+            >{{ todo.todo }}</label
+          >
           <button
             @click="removeFromTodos(todo)"
             class="remove-btn"
@@ -21,20 +29,58 @@
           </button>
         </li>
       </ul>
-      <div v-if="showCurrentTodo">
+      <div
+        style="
+          margin-bottom: 1rem;
+          display: flex;
+          gap: 1rem;
+          align-items: center;
+        "
+        v-if="showCurrentTodo"
+      >
         <input
           v-model="currentTodo"
           id="enter-todo"
           placeholder="Enter todo..."
         />
-        <button @click="addToTodo(currentTodo)">&#x2713;</button>
+        <button
+          class="submit-todo"
+          @click="addToTodo(currentTodo)"
+        >
+          &#x2713;
+        </button>
       </div>
-      <button
-        class="show-btn"
-        @click="showTodo()"
-      >
-        +
-      </button>
+      <div class="events-box">
+        <button
+          class="primary-btn show-btn"
+          @click="showTodo()"
+        >
+          +
+        </button>
+
+        <button
+          v-if="todos.length && (showCompleted || showUnCompleted)"
+          class="primary-btn filter-btn"
+          @click="(showCompleted = false), (showUnCompleted = false)"
+        >
+          Show all Todos
+        </button>
+        <button
+          v-if="todos.length && !showCompleted"
+          class="primary-btn filter-btn"
+          @click="(showCompleted = true), (showUnCompleted = false)"
+        >
+          Filter completed tasks
+        </button>
+
+        <button
+          class="primary-btn filter-btn"
+          @click="(showUnCompleted = true), (showCompleted = flse)"
+          v-if="todos.length && !showUnCompleted"
+        >
+          Filter uncompleted tasks
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -44,20 +90,42 @@ export default {
   name: 'App',
   data() {
     return {
-      todos: ['hello'],
+      todos: [],
       currentTodo: '',
-      showCurrentTodo: false
+      showCurrentTodo: false,
+      showCompleted: false,
+      showUnCompleted: false
     };
   },
+  computed: {
+    filteredTodos() {
+      if (this.showCompleted)
+        return this.todos.filter((todo) => todo.completed);
+      else if (this.showUnCompleted)
+        return this.todos.filter((todo) => !todo.completed);
+      else return this.todos;
+    }
+  },
+
   methods: {
     removeFromTodos(todo) {
-      this.todos = this.todos.filter((item) => item != todo);
+      this.todos = this.todos.filter((item) => item.todo != todo.todo);
+    },
+
+    getTodo(todo) {
+      return this.todos.find((item) => item.todo === todo.todo);
+    },
+
+    toggleCompleted(todo) {
+      const item = this.todos.find((item) => item.todo === todo.todo);
+      item.completed = !item.completed;
     },
 
     addToTodo(todo) {
       if (!this.currentTodo) return;
 
-      this.todos.push(todo);
+      if (!this.todos.find((item) => item.todo === todo))
+        this.todos.push({ todo, completed: false });
       this.currentTodo = '';
       this.showCurrentTodo = false;
     },
@@ -88,6 +156,10 @@ export default {
 
 .todos {
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0;
 }
 
 .todo {
@@ -102,16 +174,47 @@ export default {
   font-weight: 600;
 }
 
-.show-btn {
+#enter-todo {
+  background: #15191b;
+  color: aliceblue;
+  padding: 2rem;
+  flex-basis: 95%;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+}
+
+.submit-todo {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: #15191b;
+  color: aliceblue;
+}
+
+.primary-btn {
   border-radius: 5px;
   font-size: 1.2rem;
   text-align: center;
-  width: 5%;
   background: #15191b;
   color: inherit;
   border: none;
   transition: all 0.2s;
+}
+
+.events-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.show-btn {
+  width: 5%;
   height: 40px;
+}
+
+.filter-btn {
+  padding: 1rem;
 }
 
 .remove-btn {
@@ -134,7 +237,7 @@ export default {
 
 .todo-text {
   font-family: 'Courier New', Courier, monospace;
-  font-weight: 500;
+  font-weight: 700;
   font-size: 1.4rem;
 }
 
@@ -142,7 +245,11 @@ export default {
   background: rgb(222, 24, 24);
 }
 
-.show-btn:hover {
+.completed-task {
+  background: rgb(25, 112, 25);
+}
+
+.primary-btn:hover {
   border: 1px solid rgb(5, 93, 130);
 }
 </style>
