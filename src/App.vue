@@ -21,12 +21,13 @@
             class="todo-text"
             >{{ todo.todo }}</label
           >
-          <button
-            @click="removeFromTodos(todo)"
-            class="remove-btn"
+          <button-vue
+            :onClick="removeFromTodos"
+            :todo="todo"
+            :classes="['remove-btn']"
           >
             &times;
-          </button>
+          </button-vue>
         </li>
       </ul>
       <div
@@ -43,51 +44,58 @@
           id="enter-todo"
           placeholder="Enter todo..."
         />
-        <button
-          class="submit-todo"
-          @click="addToTodo(currentTodo)"
+        <button-vue
+          :classes="['submit-todo']"
+          :todo="currentTodo"
+          :onClick="addToTodo"
         >
           &#x2713;
-        </button>
+        </button-vue>
       </div>
       <div class="events-box">
-        <button
-          class="primary-btn show-btn"
-          @click="showTodo()"
+        <button-vue
+          :classes="['primary-btn', 'show-btn']"
+          :onClick="showTodo"
         >
           +
-        </button>
+        </button-vue>
 
-        <button
+        <button-vue
           v-if="todos.length && (showCompleted || showUnCompleted)"
-          class="primary-btn filter-btn"
-          @click="(showCompleted = false), (showUnCompleted = false)"
+          :classes="['primary-btn', 'filter-btn']"
+          :onClick="showAllTodosHandler"
         >
           Show all Todos
-        </button>
-        <button
+        </button-vue>
+        <button-vue
           v-if="todos.length && !showCompleted"
-          class="primary-btn filter-btn"
-          @click="(showCompleted = true), (showUnCompleted = false)"
+          :classes="['primary-btn', 'filter-btn']"
+          :onClick="showCompletedTodosHandler"
         >
           Filter completed tasks
-        </button>
+        </button-vue>
 
-        <button
-          class="primary-btn filter-btn"
-          @click="(showUnCompleted = true), (showCompleted = flse)"
+        <button-vue
           v-if="todos.length && !showUnCompleted"
+          :classes="['primary-btn', 'filter-btn']"
+          :onClick="showUnCompletedTodosHandler"
         >
           Filter uncompleted tasks
-        </button>
+        </button-vue>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import ButtonVue from './components/Button.vue';
 export default {
   name: 'App',
+
+  components: {
+    ButtonVue
+  },
+
   data() {
     return {
       todos: [],
@@ -97,6 +105,7 @@ export default {
       showUnCompleted: false
     };
   },
+
   computed: {
     filteredTodos() {
       if (this.showCompleted)
@@ -132,6 +141,18 @@ export default {
 
     showTodo() {
       this.showCurrentTodo = true;
+    },
+    showAllTodosHandler() {
+      this.showCompleted = false;
+      this.showUnCompleted = false;
+    },
+    showCompletedTodosHandler() {
+      this.showCompleted = true;
+      this.showUnCompleted = false;
+    },
+    showUnCompletedTodosHandler() {
+      this.showCompleted = false;
+      this.showUnCompleted = true;
     }
   }
 };
